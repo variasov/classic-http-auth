@@ -6,14 +6,14 @@ from .spec import Specification
 
 def authorize(spec: Specification):
     def decorator(func):
-        resource = func.__qualname__
+        resource_name = func.__qualname__
 
         @functools.wraps(func)
         def wrapper(controller, request, response):
             client = request.context.client
 
             if not spec.is_satisfied_by(client):
-                raise errors.PermissionDenied(resource=resource)
+                raise errors.PermissionDenied(resource_name=resource_name)
 
             result = func(controller, request, response)
             return result

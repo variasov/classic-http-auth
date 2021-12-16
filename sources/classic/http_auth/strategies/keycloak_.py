@@ -10,7 +10,7 @@ try:
 except ImportError:
     pass
 
-from classic.http_auth import interfaces
+from classic.http_auth import errors, interfaces
 from classic.http_auth.entities import Client
 
 from .base import BaseStrategy
@@ -76,8 +76,8 @@ class KeycloakOpenId(BaseStrategy):
                 options=self.decoding_options,
             )
         except jwt.DecodeError:
-            raise AssertionError('Token decoding error')
+            raise errors.AuthenticationError('Token decoding error')
         except jwt.PyJWTError as e:
-            raise AssertionError(f'Unexpected token error [{str(e)}]')
+            raise errors.AuthenticationError(f'Unexpected token error [{str(e)}]')
         else:
             return client_data

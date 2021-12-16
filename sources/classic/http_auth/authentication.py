@@ -42,7 +42,7 @@ class Authenticator:
 
         try:
             client = strategy.get_client(request, app_groups=self.app_groups)
-        except Exception:
+        except errors.AuthenticationError:
             self.logger.warning(
                 'Error occurred on receive client info via strategy [%s]: %s',
                 strategy_name,
@@ -55,7 +55,7 @@ class Authenticator:
 
         return client
 
-    def auth(self, request: falcon.Request, resource: str = ""):
+    def auth(self, request: falcon.Request, resource_name: str = ""):
         client = None
 
         for strategy in self.strategies:
@@ -64,7 +64,7 @@ class Authenticator:
                 break
 
         if not client:
-            raise errors.AuthenticationIsNotAvailable(resource=resource)
+            raise errors.AuthenticationIsNotAvailable(resource_name=resource_name)
 
         request.context.client = client
 
@@ -77,10 +77,10 @@ def authenticator_needed(cls):
 
         old_cls_init(instance, *args, **kwargs)
 
+    cls.__annotations__['authenticator'] = Authenticator
+
     if getattr(cls, '__component__', False):
         cls.__init__ = new_init
-    else:
-        cls.__annotations__['authenticator'] = Authenticator
     return cls
 
 
@@ -89,8 +89,8 @@ def authenticate(func):
     def wrapper(controller, request, response):
         authenticator = controller.authenticator
 
-        resource = func.__qualname__
-        authenticator.auth(request, resource)
+        resource_name = func.__qualname__
+        authenticator.auth(request, resource_name)
 
         result = func(controller, request, response)
         return result

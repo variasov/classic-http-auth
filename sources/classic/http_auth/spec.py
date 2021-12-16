@@ -1,3 +1,7 @@
+"""
+Taken from here https://gist.github.com/palankai/f73a18ce06751ab8f245
+"""
+
 from abc import ABC
 
 

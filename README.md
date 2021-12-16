@@ -3,27 +3,38 @@
 This package provides utils for authentication and authorization processes. Part of project "Classic".
 
 ## Authentication usage
-create instance in your core level code
+```python
+from classic.http_auth import authenticate
+
+
+@join_point
+@authenticate
+def on_get_show_product(self, request, response):
+    client = request.context.client
+```
+Client appears in request.context.client  
+
+For this you need to create instance in your core level code
 ```python
 from classic.http_auth import Authenticator
 
 authenticator = Authenticator()
 ```
 
-decorate any controller as authentication needed (parameter "authenticator" will automatically describe in the constructor)  
+Decorate any controller as authentication needed (parameter "authenticator" will automatically describe in the constructor)  
 ```python
-from classic.http_auth import aaa
+from classic.http_auth import authenticator_needed
 
 
 @component
-@aaa.authenticator_needed
+@authenticator_needed
 class Catalog:
     catalog: services.Catalog
     ...
 ```
-decorators order is doesn't matter
+Decorators order is doesn't matter
 
-choose a properly strategy in your api factory code (adapter level) and put the authenticator in the controller  
+Choose a properly strategy in your api factory code (adapter level) and put the authenticator in the controller  
 
 ```python
 from classic.http_auth import strategies as auth_strategies
@@ -42,21 +53,13 @@ controller = controllers.Catalog(
 )
 ```
 
-next step is a decorate controller method
-```python
-@join_point
-@aaa.authenticate
-def on_get_show_product(self, request, response):
-    client = request.context.client
-```
-client appears in request.context.client  
 You can pass multiple strategies to the authenticator. First succeed strategy will be winner  
 If all strategies failed exception will be raised  
 
 ## Authorization usage
-this stage is doing after authentication  
+This stage is doing after authentication  
 
-define groups and permissions (access schema) in your core level code and pass this one to the authenticator  
+Define groups and permissions (access schema) in your core level code and pass this one to the authenticator  
 ```python
 from classic.http_auth import Authenticator, Group, Permission
 
@@ -71,18 +74,24 @@ groups = (
 
 authenticator = Authenticator(app_groups=groups)
 ```
-apply authorization decorator to the controller method with needed groups and permission combination  
+Apply authorization decorator to the controller method with needed groups and permission combination  
 ```python
-@aaa.authenticate
-@aaa.authorize(Group('admin'))
+from classic.http_auth import Group, authenticate
+
+
+@authenticate
+@authorize(Group('admin'))
 def on_get_show_product(self, request, response):
    ...
 ```
-you can combine groups and permissions as you want
+You can combine groups and permissions as you want
 ```python
-@aaa.authenticate
-@aaa.authorize((Group('admin') & Group('foo')) | Permission('write'))
+from classic.http_auth import Group, Permission, authenticate, authorize
+
+
+@authenticate
+@authorize((Group('admin') & Group('foo')) | Permission('write'))
 def on_get_show_product(self, request, response):
    ...
 ```
-if access denied exception will be raised  
+If access denied exception will be raised  
