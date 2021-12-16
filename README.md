@@ -95,3 +95,7 @@ def on_get_show_product(self, request, response):
    ...
 ```
 If access denied exception will be raised  
+
+## Dependencies
+falcon for pushing client info through HTTP  
+pyjwt for strategies  
