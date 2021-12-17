@@ -20,7 +20,7 @@ class JwtClientFactory(interfaces.ClientFactory):
             user_id=instance_params.get('sub'),
             login=instance_params.get('login'),
             name=instance_params.get('name'),
-            groups=instance_params.get('groups'),
+            groups=map(str.strip, instance_params.get('groups', '').split(',')),
             email=instance_params.get('email'),
             app_groups=instance_params.get('app_groups'),
         )
