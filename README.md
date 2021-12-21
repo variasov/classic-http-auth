@@ -99,3 +99,21 @@ If access denied exception will be raised
 ## Dependencies
 falcon for pushing client info through HTTP  
 pyjwt for strategies  
+
+## Tests and development mode
+You can use dummy strategy
+```python
+auth_strategy = auth_strategies.JWT(secret_key='123')
+auth_dummy_strategy = auth_strategies.Dummy(
+    login=login,
+    name=name,
+    groups=groups,
+    email=email
+)
+
+if not is_dev:
+    authenticator.set_strategies(auth_strategy)
+else:
+    authenticator.set_strategies(auth_dummy_strategy)
+```
+Dummy auth data appear in a client
