@@ -24,8 +24,8 @@ class KeycloakClientFactory(interfaces.ClientFactory):
         return self.get_client_cls().create(
             user_id=instance_params.get('sub'),
             login=instance_params.get('preferred_username'),
-            name=f'{instance_params.get("given_name")} {instance_params.get("family_name")}',
-            groups=map(str.strip, instance_params.get('groups', '').split(',')),
+            name=instance_params.get('name'),
+            groups=instance_params.get('groups'),
             email=instance_params.get('email'),
             app_groups=instance_params.get('app_groups'),
         )
@@ -38,7 +38,7 @@ class KeycloakOpenId(BaseStrategy):
     def __init__(
         self,
         *,
-        public_key: str,
+        public_key: str = '',
         algorithms: Sequence[str] = None,
         decoding_options: Optional[Dict[str, Any]] = None,
         is_wrap_key=True,
@@ -57,14 +57,26 @@ class KeycloakOpenId(BaseStrategy):
         super().__init__(**kwargs)
 
         self.algorithms = algorithms or ['RS256']
-        self.public_key = (
-            f'-----BEGIN PUBLIC KEY-----\n{public_key}\n-----END PUBLIC KEY-----'
-            if is_wrap_key else public_key
-        )
+        self.public_key = self._prepare_public_key(public_key, is_wrap_key)
         self.decoding_options = self.default_decoding_options.copy()
         self.decoding_options.update(decoding_options or {})
 
+        if not self.public_key:
+            self.decoding_options['verify_signature'] = False
+
+    def _prepare_public_key(self, public_key: str, is_wrap_key: bool):
+        if not public_key:
+            is_wrap_key = False
+
+        return (
+            f'-----BEGIN PUBLIC KEY-----\n{public_key}\n-----END PUBLIC KEY-----'
+            if is_wrap_key else public_key
+        )
+
     def _get_client_data(self, request: 'falcon.Request') -> Dict[str, Any]:
+        if not request.auth:
+            raise errors.AuthenticationError('No auth info in a request')
+
         parts = request.auth.split(' ')
         access_token = parts[-1]
 

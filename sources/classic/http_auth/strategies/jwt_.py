@@ -49,6 +49,9 @@ class JWT(BaseStrategy):
             raise AssertionError('Package pyjwt should be installed')
 
     def _get_client_data(self, request: 'falcon.Request') -> Dict[str, Any]:
+        if not request.auth:
+            raise errors.AuthenticationError('No auth info in a request')
+
         parts = request.auth.split(' ')
         encoded_token = parts[-1]
 
