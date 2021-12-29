@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Set, Type
+from typing import Any, Dict, Type
 
 from classic.http_auth import Client, interfaces
 from classic.http_auth.strategies.base import BaseStrategy
@@ -22,26 +22,10 @@ class DummyClientFactory(interfaces.ClientFactory):
 class Dummy(BaseStrategy):
     default_client_factory = DummyClientFactory()
 
-    def __init__(
-        self,
-        login: str,
-        name: str,
-        groups: Optional[Set] = None,
-        email: Optional[str] = None,
-        **kwargs,
-    ):
-        self.login = login
-        self.name = name
-        self.groups = groups
-        self.email = email
+    def __init__(self, client_factory: interfaces.ClientFactory = None, **client_params):
+        self.client_params = client_params
 
-        super().__init__(**kwargs)
+        super().__init__(client_factory=client_factory)
 
     def _get_client_data(self, request: 'falcon.Request') -> Dict[str, Any]:
-        return {
-            'user_id': 1,
-            'name': self.name,
-            'login': self.login,
-            'email': self.email,
-            'groups': self.groups,
-        }
+        return self.client_params
